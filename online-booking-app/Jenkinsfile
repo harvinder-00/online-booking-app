@@ -1,0 +1,73 @@
+pipeline {
+    agent any
+
+    environment {
+        IMAGE_NAME = "online-booking-app"
+        IMAGE_TAG  = "${env.BUILD_NUMBER}"
+        CONTAINER_NAME = "online-booking-app"
+        APP_PORT = "3000"
+    }
+
+    stages {
+
+        stage('Checkout') {
+            steps {
+                // Jenkins auto-checks-out the configured Git repo,
+                // but this makes the step explicit in the pipeline view.
+                checkout scm
+            }
+        }
+
+        stage('Build & Test') {
+            steps {
+                sh '''
+                    echo "Node version:"
+                    node -v
+                    echo "Running test suite..."
+                    npm test
+                '''
+            }
+        }
+
+        stage('Build Docker Image') {
+            steps {
+                sh "docker build -t ${IMAGE_NAME}:${IMAGE_TAG} -t ${IMAGE_NAME}:latest ."
+            }
+        }
+
+        stage('Deploy') {
+            steps {
+                sh '''
+                    docker rm -f ${CONTAINER_NAME} || true
+                    docker run -d \
+                        --name ${CONTAINER_NAME} \
+                        -p ${APP_PORT}:3000 \
+                        --restart unless-stopped \
+                        ${IMAGE_NAME}:latest
+                '''
+            }
+        }
+
+        stage('Smoke Test / Monitoring Check') {
+            steps {
+                sh '''
+                    sleep 5
+                    echo "Checking /health endpoint..."
+                    curl -f http://localhost:${APP_PORT}/health
+                '''
+            }
+        }
+    }
+
+    post {
+        success {
+            echo "Pipeline succeeded: ${IMAGE_NAME}:${IMAGE_TAG} deployed and healthy."
+        }
+        failure {
+            echo "Pipeline failed - check the stage logs above."
+        }
+        always {
+            sh "docker image prune -f || true"
+        }
+    }
+}

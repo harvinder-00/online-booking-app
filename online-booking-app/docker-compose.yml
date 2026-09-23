@@ -1,0 +1,12 @@
+version: "3.8"
+
+services:
+  booking-app:
+    build: .
+    image: online-booking-app:latest
+    container_name: online-booking-app
+    ports:
+      - "3000:3000"
+    restart: unless-stopped
+    environment:
+      - PORT=3000

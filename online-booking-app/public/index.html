@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Online Room Booking</title>
+<link rel="stylesheet" href="/style.css" />
+</head>
+<body>
+  <header>
+    <h1>📅 Online Room Booking</h1>
+    <p>Simple booking system — built for the DevOps TAE-II pipeline demo</p>
+  </header>
+
+  <main>
+    <section class="card">
+      <h2>Book a Room</h2>
+      <form id="booking-form">
+        <label>
+          Room
+          <select id="roomId" required></select>
+        </label>
+        <label>
+          Your Name
+          <input type="text" id="customerName" required placeholder="e.g. Aisha Khan" />
+        </label>
+        <label>
+          Date
+          <input type="date" id="date" required />
+        </label>
+        <label>
+          Time
+          <input type="time" id="time" required />
+        </label>
+        <button type="submit">Book Room</button>
+      </form>
+      <p id="form-message"></p>
+    </section>
+
+    <section class="card">
+      <h2>Current Bookings</h2>
+      <table id="bookings-table">
+        <thead>
+          <tr><th>Room</th><th>Name</th><th>Date</th><th>Time</th><th></th></tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </section>
+  </main>
+
+  <footer>
+    <span id="health-indicator">checking service health…</span>
+  </footer>
+
+  <script src="/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,49 @@
+---
+# Ansible playbook: pulls the built image and (re)runs the container.
+# Run with:  ansible-playbook -i inventory.ini deploy.yml
+# Works against "localhost" out of the box, or a real VM if you edit inventory.ini.
+
+- name: Deploy online-booking-app container
+  hosts: booking_servers
+  become: true
+  vars:
+    image_name: "online-booking-app:latest"
+    container_name: "online-booking-app"
+    host_port: 3000
+
+  tasks:
+    - name: Ensure Docker is installed
+      ansible.builtin.package:
+        name: docker.io
+        state: present
+      when: ansible_facts['os_family'] == "Debian"
+
+    - name: Ensure Docker service is running
+      ansible.builtin.service:
+        name: docker
+        state: started
+        enabled: true
+
+    - name: Remove any existing container with the same name
+      community.docker.docker_container:
+        name: "{{ container_name }}"
+        state: absent
+      ignore_errors: true
+
+    - name: Run the booking app container
+      community.docker.docker_container:
+        name: "{{ container_name }}"
+        image: "{{ image_name }}"
+        state: started
+        restart_policy: unless-stopped
+        published_ports:
+          - "{{ host_port }}:3000"
+
+    - name: Wait for the app to become healthy
+      ansible.builtin.uri:
+        url: "http://localhost:{{ host_port }}/health"
+        status_code: 200
+      register: health_check
+      retries: 5
+      delay: 3
+      until: health_check.status == 200
