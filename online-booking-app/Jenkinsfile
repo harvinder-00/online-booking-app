@@ -60,7 +60,7 @@ pipeline {
                 sh '''
                     sleep 5
                     echo "Checking /health endpoint..."
-                    curl -f http://localhost:${APP_PORT}/health
+                    curl -f http://host.docker.internal:${APP_PORT}/health
                 '''
             }
         }
