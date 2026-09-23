@@ -1,37 +1,44 @@
 pipeline {
     agent any
 
+    tools {
+        nodejs 'NodeJS'
+    }
+
     environment {
         IMAGE_NAME = "online-booking-app"
         IMAGE_TAG  = "${env.BUILD_NUMBER}"
         CONTAINER_NAME = "online-booking-app"
         APP_PORT = "3000"
+        APP_DIR = "online-booking-app"
     }
 
     stages {
 
         stage('Checkout') {
             steps {
-                // Jenkins auto-checks-out the configured Git repo,
-                // but this makes the step explicit in the pipeline view.
                 checkout scm
             }
         }
 
         stage('Build & Test') {
             steps {
-                sh '''
-                    echo "Node version:"
-                    node -v
-                    echo "Running test suite..."
-                    npm test
-                '''
+                dir("${APP_DIR}") {
+                    sh '''
+                        echo "Node version:"
+                        node -v
+                        echo "Running test suite..."
+                        npm test
+                    '''
+                }
             }
         }
 
         stage('Build Docker Image') {
             steps {
-                sh "docker build -t ${IMAGE_NAME}:${IMAGE_TAG} -t ${IMAGE_NAME}:latest ."
+                dir("${APP_DIR}") {
+                    sh "docker build -t ${IMAGE_NAME}:${IMAGE_TAG} -t ${IMAGE_NAME}:latest ."
+                }
             }
         }
 
